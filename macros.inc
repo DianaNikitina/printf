@@ -37,14 +37,4 @@ mov rdi, 0
 syscall
 %endmacro
 
-;======================================
-;macro FILL_RANGE: fill unget_spec for
-;not copy
-;======================================
-%macro FILL_RANGE 3
-%rep %3 - %2 + 1
-                    dq %1
-%endrep
-%endmacro
-
 %endif

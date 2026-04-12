@@ -15,12 +15,12 @@ jmp_table:
                     dq get_b
                     dq get_c
                     dq get_d
-                    FILL_RANGE unget_spec, 'e', 'n'
-                    dq get_o        
-                    FILL_RANGE unget_spec, 'p', 'r'
-                    dq get_s          
-                    FILL_RANGE unget_spec, 't', 'w'
-                    dq get_x            
+                    dq unget_spec dup (12)    
+                    dq get_o                 
+                    dq unget_spec dup (3)     
+                    dq get_s                  
+                    dq unget_spec dup (4)     
+                    dq get_x                            
 
 section .text
 ;======================================
@@ -41,11 +41,10 @@ my_printf:
 
                     ;str = const char* in printf, rdi = *str
                     ;rdi -> rsi -> rdx -> rcx -> r8 -> r9
-                    mov  rbx, rdi        ; сохраним fmt, чтобы освободить rsi
+                    mov  rbx, rdi 
 
-                    ; кладём 5 регистровых аргументов на стек так,
-                    ; чтобы [r13 + 0*8] = arg1 (старый rsi),
-                    ; [r13 + 1*8] = arg2 (rdx), ..., [r13 + 4*8] = arg5 (r9)
+                    ;push 5 regs
+                    ;[r13 + 0*8] = arg1, [r13 + 1*8] = arg2
 
                     push r9
                     push r8
@@ -53,10 +52,10 @@ my_printf:
                     push rdx
                     push rsi             
 
-                    mov  r13, rsp        ; r13 -> начало массива аргументов
-                    xor  r12d, r12d      ; индекс следующего аргумента
+                    mov  r13, rsp        ; r13 -> start arrary arg
+                    xor  r12d, r12d      ; index next arg
 
-                    mov  rsi, rbx        ; rsi = fmt (форматная строка)
+                    mov  rsi, rbx        ; rsi = str
       
 
                     ;al = 1st symbol in const str
