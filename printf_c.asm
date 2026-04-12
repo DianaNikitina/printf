@@ -27,82 +27,37 @@ section .text
 ;r12d - save arg index
 ;r13 - save first address in stack
 ;======================================
-get_next_arg:       ;push in stack
-                    cmp r12d, 0
-                    je first_arg_rsi
-                    cmp r12d, 1
-                    je second_arg_rdi
-                    cmp r12d, 2
-                    je third_arg_rcx
-                    cmp r12d, 3
-                    je forth_arg_r8
-                    cmp r12d, 4
-                    je fifth_arg_r9
-                    jmp arg_stack
-
-
-first_arg_rsi:
-                    mov rax, r14
-                    inc r12d
-                    ret
-
-second_arg_rdi:
-                    mov rax, r15
-                    inc r12d
-                    ret
-
-third_arg_rcx:
-                    mov rax, r10
-                    inc r12d
-                    ret  
-
-forth_arg_r8:
-                    mov rax, r11
-                    inc r12d
-                    ret
-
-fifth_arg_r9:
-                    mov rax, rbx
-                    inc r12d
-                    ret
-
-arg_stack:
+get_next_arg:
                     mov eax, r12d
-                    sub eax, 5
                     mov rax, [r13 + rax*8]
                     inc r12d
-                    ret    
-
+                    ret
 
 my_printf:
                     ;start prologue
-                    ;to save old data
-                    ;put rbp (base pointer) in stack
                     push rbp
-                    ;mov in rbp new stack pointer after push rbp
                     mov rbp, rsp
-                    push rbx
-                    push r12
-                    push r13
-                    push r14
-                    push r15
                     ;end prologue
 
                     ;str = const char* in printf, rdi = *str
                     ;rdi -> rsi -> rdx -> rcx -> r8 -> r9
-                    mov r14, rsi
-                    mov r15, rdx        
-                    mov r10, rcx        
-                    mov r11, r8        
-                    mov rbx, r9 
+                    mov  rbx, rdi        ; сохраним fmt, чтобы освободить rsi
 
-                    mov rsi, rdi        ;format str
+                    ; кладём 5 регистровых аргументов на стек так,
+                    ; чтобы [r13 + 0*8] = arg1 (старый rsi),
+                    ; [r13 + 1*8] = arg2 (rdx), ..., [r13 + 4*8] = arg5 (r9)
 
-                    xor r12d, r12d
+                    push r9
+                    push r8
+                    push rcx
+                    push rdx
+                    push rsi             
 
-                    ;put r13 - start of stack
-                    mov r13, rbp
-                    add r13, 16       
+                    mov  r13, rsp        ; r13 -> начало массива аргументов
+                    xor  r12d, r12d      ; индекс следующего аргумента
+
+                    mov  rsi, rbx        ; rsi = fmt (форматная строка)
+      
 
                     ;al = 1st symbol in const str
 put_str:            mov al, byte [rsi]
@@ -117,6 +72,7 @@ put_str:            mov al, byte [rsi]
 
 
 get_percent:        inc rsi
+                    mov al, [rsi]
                     cmp al, 'b'
                     jb unget_spec
                     cmp al, 'x'
@@ -310,12 +266,7 @@ unget_spec:         mov byte [char], '%'
 
 
                     ;restore regs
-exit:               pop r15
-                    pop r14
-                    pop r13
-                    pop r12
-                    pop rbx
-
+exit:               add rsp, 5*8
                     mov rsp, rbp
                     pop rbp
 
